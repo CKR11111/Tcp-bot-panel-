@@ -3,104 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Fire Bot Panel | CKRPRO</title>
+    <title>FF Bot Panel | CKRPRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #0d1117;
             color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
+            font-family: -apple-system, system-ui, sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
         }
-        .glass {
+        .panel-card {
             background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 350px;
         }
-        .btn-glass {
-            background: rgba(255, 255, 255, 0.1);
-            transition: 0.3s;
+        .ios-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            outline: none;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            width: 100%;
+            color: #fff;
         }
-        .btn-glass:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.02);
+        .ios-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+        .ios-btn:active {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(0.98);
+        }
+        /* Hidden Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { width: 0px; }
+        
+        /* SweetAlert iPhone Style */
+        .swal2-popup {
+            background: rgba(25, 25, 25, 0.95) !important;
+            backdrop-filter: blur(10px);
+            border-radius: 20px !important;
+            color: white !important;
         }
     </style>
 </head>
-<body class="p-5 flex flex-col items-center min-h-screen">
+<body>
 
-    <div class="glass w-full max-w-md p-6 text-center mb-6">
-        <h1 class="text-2xl font-bold tracking-tight">Free Fire Bot Panel</h1>
-        <p class="text-xs text-gray-400 mt-1">Developer: <span class="text-blue-400 font-bold">CKRPRO</span></p>
-    </div>
-
-    <div class="glass w-full max-w-md p-6 mb-6">
-        <h2 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Actions</h2>
-        <div class="flex flex-col gap-3">
-            <input id="targetUID" type="text" placeholder="Enter Target UID" class="bg-transparent border border-gray-600 rounded-xl p-3 outline-none focus:border-blue-500">
-            <button onclick="addFriend()" class="btn-glass p-3 rounded-xl font-medium text-green-400">Add Friend</button>
-            <button onclick="removeFriendDirect()" class="btn-glass p-3 rounded-xl font-medium text-red-400">Remove Friend</button>
+    <div class="panel-card p-6 shadow-2xl">
+        <div class="text-center mb-6">
+            <h1 class="text-xl font-bold tracking-tight text-gray-100">Free Fire Bot Panel</h1>
+            <p class="text-[10px] text-blue-400 font-bold mt-1 tracking-widest uppercase opacity-80">Developer: CKRPRO</p>
         </div>
-    </div>
 
-    <div class="glass w-full max-w-md p-6">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-sm font-semibold uppercase text-gray-400">Friend List</h2>
-            <button onclick="fetchFriends()" class="text-xs bg-blue-600 px-3 py-1 rounded-full">Refresh</button>
+        <div class="space-y-4 mb-6">
+            <p class="text-[10px] text-gray-500 font-bold uppercase ml-1">Actions</p>
+            <input id="targetUID" type="number" placeholder="Enter UID" class="ios-input font-mono text-lg">
+            
+            <div class="grid grid-cols-1 gap-2">
+                <button onclick="run('add')" class="ios-btn text-green-400">Add Friend</button>
+                <button onclick="run('remove')" class="ios-btn text-red-400">Remove Friend</button>
+            </div>
         </div>
-        
-        <div id="friendContainer" class="flex flex-col gap-3 max-h-80 overflow-y-auto pr-2">
+
+        <div class="space-y-4">
+            <div class="flex justify-between items-center px-1">
+                <p class="text-[10px] text-gray-500 font-bold uppercase">Friend List</p>
+                <button onclick="loadList()" class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
 
-        <button onclick="removeAllFriends()" class="w-full mt-6 bg-red-500/20 text-red-500 border border-red-500/50 p-3 rounded-xl font-bold">REMOVE ALL FRIENDS</button>
+            <div id="listBody" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">List not loaded</p>
+            </div>
+
+            <button onclick="removeAll()" class="w-full mt-2 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
+        </div>
     </div>
 
     <script>
-        async function fetchFriends() {
-            const container = document.getElementById('friendContainer');
-            container.innerHTML = "Loading...";
-            const res = await fetch('/get_friends');
-            const data = await res.json();
-            
-            container.innerHTML = "";
-            // API format अनुसार keys मिलाउनुहोला
-            data.friends.forEach(f => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
-                        <div>
-                            <p class="font-medium text-sm">${f.name}</p>
-                            <p class="text-xs text-gray-500">${f.uid}</p>
-                        </div>
-                        <button onclick="removeFriend('${f.uid}')" class="text-red-400 text-xs">Remove</button>
-                    </div>
-                `;
-            });
-        }
+        let friends = [];
 
-        async function addFriend() {
-            const uid = document.getElementById('targetUID').value;
-            const res = await fetch('/add_friend', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({target_uid: uid})
-            });
-            alert("Request Sent!");
-        }
-
-        async function removeFriend(uid) {
-            await fetch('/remove_friend', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({target_uid: uid})
-            });
-            fetchFriends();
-        }
-
-        async function removeAllFriends() {
-            if(confirm("Are you sure you want to clear all friends?")) {
-                // यहाँ bulk remove logic API अनुसार थप्न सकिन्छ
-                alert("Bulk removal started...");
+        async function run(type, uid = null) {
+            const finalUid = uid || document.getElementById('targetUID').value;
+            if(!finalUid && type !== 'get_list') {
+                Swal.fire({ icon: 'error', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                return;
             }
+
+            const res = await fetch('/api/action', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ type, target_uid: finalUid })
+            });
+            const data = await res.json();
+
+            if(type === 'add' || type === 'remove') {
+                Swal.fire({ icon: 'success', title: 'Success', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                if(type === 'remove') loadList();
+            }
+            return data;
+        }
+
+        async function loadList() {
+            const box = document.getElementById('listBody');
+            box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
+            
+            const data = await run('get_list');
+            friends = data.friends || data.data || [];
+
+            if(friends.length === 0) {
+                box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase tracking-widest">No friends</p>';
+                return;
+            }
+
+            box.innerHTML = friends.map(f => `
+                <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                    <div class="truncate">
+                        <p class="text-xs font-bold text-gray-200 truncate">${f.name || 'No Name'}</p>
+                        <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
+                    </div>
+                    <button onclick="run('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
+                </div>
+            `).join('');
+        }
+
+        async function removeAll() {
+            if(friends.length === 0) return;
+            Swal.fire({
+                title: 'Clear All?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Clean'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    friends.forEach(f => {
+                        fetch('/api/action', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ type: 'remove', target_uid: f.uid })
+                        });
+                    });
+                    Swal.fire({ title: 'Cleaning...', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                    setTimeout(loadList, 2500);
+                }
+            });
         }
     </script>
 </body>
