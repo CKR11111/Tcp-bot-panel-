@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, jsonify
 import requests
+from flask import Flask, render_template, request, jsonify
 
 app = Flask(__name__)
 
-# User Config (तिमीले दिएको विवरण)
+# Config - User Details
 USER_ID = "4338314063"
 USER_PASS = "CKR_90V42__M22NG"
 
@@ -11,25 +11,26 @@ USER_PASS = "CKR_90V42__M22NG"
 def index():
     return render_template('index.html')
 
-@app.route('/get_friends')
-def get_friends():
-    url = f"https://danger-friend-management.vercel.app/get_friends_list?uid={USER_ID}&password={USER_PASS}"
-    response = requests.get(url)
-    return jsonify(response.json())
+@app.route('/api/action', methods=['POST'])
+def handle_api():
+    data = request.json
+    action_type = data.get('type')
+    target_uid = data.get('target_uid')
 
-@app.route('/remove_friend', methods=['POST'])
-def remove_friend():
-    target_uid = request.json.get('target_uid')
-    url = f"https://danger-friend-management.vercel.app/remove_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
-    response = requests.get(url)
-    return jsonify(response.json())
+    if action_type == 'get_list':
+        url = f"https://danger-friend-management.vercel.app/get_friends_list?uid={USER_ID}&password={USER_PASS}"
+    elif action_type == 'add':
+        url = f"https://pnl-frind-add-api.vercel.app/adding_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
+    elif action_type == 'remove':
+        url = f"https://danger-friend-management.vercel.app/remove_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
+    else:
+        return jsonify({"error": "Invalid action"}), 400
 
-@app.route('/add_friend', methods=['POST'])
-def add_friend():
-    target_uid = request.json.get('target_uid')
-    url = f"https://pnl-frind-add-api.vercel.app/adding_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
-    response = requests.get(url)
-    return jsonify(response.json())
+    try:
+        response = requests.get(url, timeout=15)
+        return jsonify(response.json())
+    except:
+        return jsonify({"error": "API Error"}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000)
