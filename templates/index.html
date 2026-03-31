@@ -1,1 +1,107 @@
-hh
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Fire Bot Panel | CKRPRO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica;
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.1);
+            transition: 0.3s;
+        }
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="p-5 flex flex-col items-center min-h-screen">
+
+    <div class="glass w-full max-w-md p-6 text-center mb-6">
+        <h1 class="text-2xl font-bold tracking-tight">Free Fire Bot Panel</h1>
+        <p class="text-xs text-gray-400 mt-1">Developer: <span class="text-blue-400 font-bold">CKRPRO</span></p>
+    </div>
+
+    <div class="glass w-full max-w-md p-6 mb-6">
+        <h2 class="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">Actions</h2>
+        <div class="flex flex-col gap-3">
+            <input id="targetUID" type="text" placeholder="Enter Target UID" class="bg-transparent border border-gray-600 rounded-xl p-3 outline-none focus:border-blue-500">
+            <button onclick="addFriend()" class="btn-glass p-3 rounded-xl font-medium text-green-400">Add Friend</button>
+            <button onclick="removeFriendDirect()" class="btn-glass p-3 rounded-xl font-medium text-red-400">Remove Friend</button>
+        </div>
+    </div>
+
+    <div class="glass w-full max-w-md p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-sm font-semibold uppercase text-gray-400">Friend List</h2>
+            <button onclick="fetchFriends()" class="text-xs bg-blue-600 px-3 py-1 rounded-full">Refresh</button>
+        </div>
+        
+        <div id="friendContainer" class="flex flex-col gap-3 max-h-80 overflow-y-auto pr-2">
+            </div>
+
+        <button onclick="removeAllFriends()" class="w-full mt-6 bg-red-500/20 text-red-500 border border-red-500/50 p-3 rounded-xl font-bold">REMOVE ALL FRIENDS</button>
+    </div>
+
+    <script>
+        async function fetchFriends() {
+            const container = document.getElementById('friendContainer');
+            container.innerHTML = "Loading...";
+            const res = await fetch('/get_friends');
+            const data = await res.json();
+            
+            container.innerHTML = "";
+            // API format अनुसार keys मिलाउनुहोला
+            data.friends.forEach(f => {
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                        <div>
+                            <p class="font-medium text-sm">${f.name}</p>
+                            <p class="text-xs text-gray-500">${f.uid}</p>
+                        </div>
+                        <button onclick="removeFriend('${f.uid}')" class="text-red-400 text-xs">Remove</button>
+                    </div>
+                `;
+            });
+        }
+
+        async function addFriend() {
+            const uid = document.getElementById('targetUID').value;
+            const res = await fetch('/add_friend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({target_uid: uid})
+            });
+            alert("Request Sent!");
+        }
+
+        async function removeFriend(uid) {
+            await fetch('/remove_friend', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({target_uid: uid})
+            });
+            fetchFriends();
+        }
+
+        async function removeAllFriends() {
+            if(confirm("Are you sure you want to clear all friends?")) {
+                // यहाँ bulk remove logic API अनुसार थप्न सकिन्छ
+                alert("Bulk removal started...");
+            }
+        }
+    </script>
+</body>
+</html>
