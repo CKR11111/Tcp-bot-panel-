@@ -10,7 +10,7 @@
         body { background: #0d1117; color: white; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
         .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 380px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
         .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; text-align: center; width: 100%; color: #fff; outline: none; font-size: 16px; }
-        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 13px; transition: 0.2s; }
+        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 13px; transition: 0.2s; cursor: pointer; }
         .ios-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
         .display-area { background: rgba(0, 0, 0, 0.5); border-radius: 16px; padding: 15px; margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #333; }
         .bold-vertical { color: #ffffff; font-weight: 900; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: monospace; }
@@ -23,7 +23,6 @@
             <h1 class="text-xl font-bold">Free Fire Bot Panel</h1>
             <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Dev: Def Sajan</p>
         </div>
-
         <div class="space-y-3 mb-6">
             <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">
             <div class="grid grid-cols-2 gap-2">
@@ -32,28 +31,25 @@
             </div>
             <button onclick="run('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
         </div>
-
         <div>
             <div class="flex justify-between items-center mb-2">
-                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Response / List</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">Response / List</p>
                 <button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
             <div id="displayArea" class="display-area no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready...</p>
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready</p>
             </div>
         </div>
     </div>
-
     <script>
-        function cleanJSON(obj, level = 0) {
+        function cleanJSON(obj) {
             let res = "";
-            let spacer = "  ".repeat(level);
             for (let k in obj) {
                 if (typeof obj[k] === 'object' && obj[k] !== null) {
-                    res += spacer + k.toUpperCase() + ":\n" + cleanJSON(obj[k], level + 1);
+                    res += k.toUpperCase() + ":\n" + cleanJSON(obj[k]);
                 } else {
                     let v = String(obj[k]).replace(/[\[\]{}'"]/g, '');
-                    res += `${spacer}➜ ${k.toUpperCase()}: ${v}\n`;
+                    res += `➜ ${k.toUpperCase()}: ${v}\n`;
                 }
             }
             return res;
@@ -81,7 +77,7 @@
                     loadList();
                 }
             } catch (e) {
-                area.innerHTML = '<p class="text-center text-red-500 text-[10px] font-bold">ERROR</p>';
+                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">ERROR</p>';
             }
         }
 
@@ -96,10 +92,10 @@
                 });
                 const d = await res.json();
                 const list = d.friends || d.data || [];
-                if(list.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Empty</p>'; return; }
+                if(list.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>'; return; }
                 area.innerHTML = list.map(f => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
-                        <div class="truncate"><p class="text-xs font-bold">${f.name || 'No Name'}</p><p class="text-[9px] text-gray-500">${f.uid}</p></div>
+                        <div class="truncate"><p class="text-xs font-bold text-gray-200">${f.name || 'No Name'}</p><p class="text-[9px] text-gray-500 font-mono">${f.uid}</p></div>
                         <button onclick="run('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
                     </div>`).join('');
             } catch (e) { area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Sync Error</p>'; }
