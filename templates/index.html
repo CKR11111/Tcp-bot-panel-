@@ -24,6 +24,7 @@
             border-radius: 24px;
             width: 100%;
             max-width: 380px;
+            padding: 24px;
         }
         .ios-input {
             background: rgba(0, 0, 0, 0.3);
@@ -34,6 +35,7 @@
             text-align: center;
             width: 100%;
             color: #fff;
+            font-size: 16px;
         }
         .ios-btn {
             background: rgba(255, 255, 255, 0.08);
@@ -45,31 +47,28 @@
         }
         .ios-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.15); }
         
-        /* Terminal Box - Bold & White */
-        #terminalBox {
-            display: none;
-            background: #000;
-            border: 2px solid #222;
-            border-radius: 15px;
+        .result-container {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
             padding: 15px;
-            margin-top: 15px;
-            max-height: 200px;
+            margin-top: 10px;
+            max-height: 300px;
             overflow-y: auto;
         }
-        .terminal-content {
+        .bold-text {
             color: #ffffff;
-            font-weight: 900;
-            font-size: 12px;
-            font-family: monospace;
+            font-weight: 800;
+            font-size: 13px;
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.8;
             white-space: pre-wrap;
-            line-height: 1.6;
         }
         .no-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body>
 
-    <div class="panel-card p-6 shadow-2xl">
+    <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
             <h1 class="text-xl font-bold tracking-tight text-gray-100">Free Fire Bot Panel</h1>
             <p class="text-[10px] text-blue-400 font-bold mt-1 tracking-widest uppercase opacity-80">Developer: Def Sajan</p>
@@ -79,48 +78,45 @@
             <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">
             
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="handleAction('add')" class="ios-btn text-green-400">Add Friend</button>
-                <button onclick="handleAction('track')" class="ios-btn text-blue-400 font-bold">Track Player</button>
+                <button onclick="runAction('add')" class="ios-btn text-green-400">Add Friend</button>
+                <button onclick="runAction('track')" class="ios-btn text-blue-400">Track Player</button>
             </div>
-            <button onclick="handleAction('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
+            <button onclick="runAction('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
         </div>
 
-        <div id="terminalBox" class="no-scrollbar">
-            <p class="text-[9px] text-gray-500 mb-2 uppercase font-bold tracking-widest">Tracking Response</p>
-            <div id="terminalBody" class="terminal-content"></div>
-        </div>
-
-        <div class="space-y-4 mt-6">
-            <div class="flex justify-between items-center px-1">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">Friend List</p>
+        <div class="mt-6">
+            <div class="flex justify-between items-center mb-3">
+                <p id="listTitle" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Player Info / List</p>
                 <button onclick="loadList()" class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-bold">Refresh List</button>
             </div>
-            <div id="listBody" class="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">List is empty</p>
+            
+            <div id="displayArea" class="result-container no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">No data to show</p>
             </div>
-            <button onclick="removeAll()" class="w-full mt-2 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
+
+            <button onclick="removeAll()" class="w-full mt-4 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
         </div>
     </div>
 
     <script>
-        // Clean and vertical response formatter
-        function cleanFormat(obj) {
-            let result = "";
+        // Clean formatter for vertical, bold, and clean text
+        function formatData(obj, indent = "") {
+            let str = "";
             for (let key in obj) {
                 if (typeof obj[key] === 'object' && obj[key] !== null) {
-                    result += `${key.toUpperCase()}:\n${cleanFormat(obj[key])}`;
+                    str += `${indent}${key.toUpperCase()}:\n${formatData(obj[key], indent + "  ")}`;
                 } else {
                     let val = String(obj[key]).replace(/[\[\]{}'"]/g, '');
-                    result += `| ${key.toUpperCase()}: ${val}\n`;
+                    str += `${indent}➜ ${key.toUpperCase()}: ${val}\n`;
                 }
             }
-            return result;
+            return str;
         }
 
-        async function handleAction(type, uid = null) {
+        async function runAction(type, uid = null) {
             const finalUid = uid || document.getElementById('targetUID').value;
-            const termBox = document.getElementById('terminalBox');
-            const termBody = document.getElementById('terminalBody');
+            const display = document.getElementById('displayArea');
+            const title = document.getElementById('listTitle');
 
             if(!finalUid) {
                 Swal.fire({ icon: 'error', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
@@ -128,59 +124,68 @@
             }
 
             if(type === 'track') {
-                termBox.style.display = 'block';
-                termBody.innerText = "INITIALIZING TRACKER...";
+                title.innerText = "TRACKING DATA";
+                display.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse">TRACKING PLAYER...</p>';
             }
 
-            const res = await fetch('/api/action', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ type, target_uid: finalUid })
-            });
-            const data = await res.json();
+            try {
+                const res = await fetch('/api/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type, target_uid: finalUid })
+                });
+                const data = await res.json();
 
-            if(type === 'track') {
-                termBody.innerText = cleanFormat(data);
-            } else {
-                termBox.style.display = 'none';
-                Swal.fire({ icon: 'success', title: 'Done', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
-                if(type === 'remove' || type === 'add') loadList();
+                if(type === 'track') {
+                    display.innerHTML = `<div class="bold-text">${formatData(data)}</div>`;
+                } else {
+                    Swal.fire({ icon: 'success', title: 'Success', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                    loadList();
+                }
+            } catch (err) {
+                display.innerHTML = '<p class="text-center text-[10px] py-4 text-red-500">ERROR: CONNECTION FAILED</p>';
             }
         }
 
         async function loadList() {
-            const box = document.getElementById('listBody');
-            box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
+            const display = document.getElementById('displayArea');
+            const title = document.getElementById('listTitle');
+            title.innerText = "FRIEND LIST";
+            display.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
             
-            const res = await fetch('/api/action', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ type: 'get_list' })
-            });
-            const data = await res.json();
-            const friends = data.friends || data.data || [];
+            try {
+                const res = await fetch('/api/action', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ type: 'get_list' })
+                });
+                const data = await res.json();
+                const friends = data.friends || data.data || [];
 
-            if(friends.length === 0) {
-                box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>';
-                return;
-            }
+                if(friends.length === 0) {
+                    display.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase tracking-widest">Empty List</p>';
+                    return;
+                }
 
-            box.innerHTML = friends.map(f => `
-                <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl">
-                    <div class="truncate">
-                        <p class="text-xs font-bold text-gray-200 truncate">${f.name || 'Unknown'}</p>
-                        <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
+                display.innerHTML = friends.map(f => `
+                    <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-gray-200 truncate">${f.name || 'Unknown'}</p>
+                            <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
+                        </div>
+                        <button onclick="runAction('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
                     </div>
-                    <button onclick="handleAction('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
-                </div>
-            `).join('');
+                `).join('');
+            } catch (e) {
+                display.innerHTML = '<p class="text-center text-[10px] py-4 text-red-500">LOAD ERROR</p>';
+            }
         }
-        
+
         function removeAll() {
-            Swal.fire({ title: 'Are you sure?', icon: 'warning', showCancelButton: true }).then((r) => {
+            Swal.fire({ title: 'Clear Friends?', icon: 'warning', showCancelButton: true }).then((r) => {
                 if(r.isConfirmed) {
-                    Swal.fire({ title: 'Processing...', toast: true, position: 'top', showConfirmButton: false });
-                    // Logical loop for removal...
+                    Swal.fire({ title: 'Cleaning...', toast: true, position: 'top', showConfirmButton: false });
+                    // Clean logic...
                 }
             });
         }
