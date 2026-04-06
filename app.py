@@ -20,22 +20,17 @@ def handle_api():
     if action_type == 'get_list':
         url = f"https://danger-friend-management.vercel.app/get_friends_list?uid={USER_ID}&password={USER_PASS}"
     elif action_type == 'add':
-        # New API structure: uses player_id instead of friend_uid
-        url = f"https://ckrunknown-ff-api-req.hf.space/get_player_info?player_id={target_uid}&uid={USER_ID}&password={USER_PASS}"
+        url = f"https://ckrunknown-ff-api-req.hf.space/add_friend?player_id={target_uid}&uid={USER_ID}&password={USER_PASS}"
     elif action_type == 'remove':
         url = f"https://danger-friend-management.vercel.app/remove_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
     else:
-        return jsonify({"status": "error", "message": "Invalid Action"}), 400
+        return jsonify({"status": "error", "message": "Invalid action"}), 400
 
     try:
-        response = requests.get(url, timeout=15)
-        if response.status_code == 200:
-            # API le return gareko real JSON data pathaune
-            return jsonify(response.json())
-        else:
-            return jsonify({"status": "error", "message": f"Server Error: {response.status_code}"})
-    except Exception as e:
-        return jsonify({"status": "error", "message": "Connection Failed"})
+        response = requests.get(url, timeout=20)
+        return jsonify(response.json())
+    except:
+        return jsonify({"status": "error", "message": "API Connection Failed"})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
