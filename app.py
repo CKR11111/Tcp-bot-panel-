@@ -26,7 +26,7 @@ def handle_api():
     elif action_type == 'track':
         url = f"https://player-status-api.onrender.com/api/info/{target_uid}"
     else:
-        return jsonify({"status": "error", "message": "Invalid Action"}), 400
+        return jsonify({"status": "error", "message": "Invalid action"}), 400
 
     try:
         response = requests.get(url, timeout=15)
