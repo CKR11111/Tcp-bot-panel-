@@ -20,9 +20,13 @@ def handle_api():
     if action_type == 'get_list':
         url = f"https://danger-friend-management.vercel.app/get_friends_list?uid={USER_ID}&password={USER_PASS}"
     elif action_type == 'add':
-        url = f"https://pnl-frind-add-api.vercel.app/adding_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
+        # [span_2](start_span)New Add Friend API provided[span_2](end_span)
+        url = f"https://ckrunknown-ff-api-req.hf.space/get_player_info?player_id={target_uid}&uid={USER_ID}&password={USER_PASS}"
     elif action_type == 'remove':
         url = f"https://danger-friend-management.vercel.app/remove_friend?uid={USER_ID}&password={USER_PASS}&friend_uid={target_uid}"
+    elif action_type == 'track':
+        # New Player Tracking API
+        url = f"https://player-status-api.onrender.com/api/info/{target_uid}"
     else:
         return jsonify({"error": "Invalid action"}), 400
 
@@ -30,7 +34,7 @@ def handle_api():
         response = requests.get(url, timeout=15)
         return jsonify(response.json())
     except:
-        return jsonify({"error": "API Error"}), 500
+        return jsonify({"error": "Connection Failed"}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
