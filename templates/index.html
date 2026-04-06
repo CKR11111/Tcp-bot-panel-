@@ -8,98 +8,111 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { background: #0d1117; color: white; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 380px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
+        .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 350px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
         .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; text-align: center; width: 100%; color: #fff; outline: none; font-size: 16px; }
-        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 13px; transition: 0.2s; cursor: pointer; }
+        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; transition: 0.2s; cursor: pointer; }
         .ios-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
-        .display-area { background: rgba(0, 0, 0, 0.5); border-radius: 16px; padding: 15px; margin-top: 15px; max-height: 300px; overflow-y: auto; border: 1px solid #333; }
-        .bold-vertical { color: #ffffff; font-weight: 900; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: monospace; }
+        .list-box { background: rgba(0, 0, 0, 0.3); border-radius: 16px; padding: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; border: 1px solid #222; }
         .no-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body>
+
     <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold">Free Fire Bot Panel</h1>
+            <h1 class="text-xl font-bold tracking-tight">Free Fire Bot Panel</h1>
             <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Dev: Def Sajan</p>
         </div>
-        <div class="space-y-3 mb-6">
+
+        <div class="space-y-4 mb-6">
             <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="run('add')" class="ios-btn text-green-400">Add Friend</button>
-                <button onclick="run('track')" class="ios-btn text-blue-400">Track Player</button>
-            </div>
-            <button onclick="run('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
+            <button onclick="runAction('add')" class="w-full ios-btn text-green-400">Add Friend</button>
+            <button onclick="runAction('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
         </div>
+
         <div>
-            <div class="flex justify-between items-center mb-2">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">Response / List</p>
-                <button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
+            <div class="flex justify-between items-center mb-3">
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Friend List</p>
+                <button onclick="loadList()" class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
-            <div id="displayArea" class="display-area no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready</p>
+            
+            <div id="listBody" class="list-box no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">No data</p>
             </div>
+
+            <button onclick="removeAll()" class="w-full mt-4 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
         </div>
     </div>
-    <script>
-        function cleanJSON(obj) {
-            let res = "";
-            for (let k in obj) {
-                if (typeof obj[k] === 'object' && obj[k] !== null) {
-                    res += k.toUpperCase() + ":\n" + cleanJSON(obj[k]);
-                } else {
-                    let v = String(obj[k]).replace(/[\[\]{}'"]/g, '');
-                    res += `➜ ${k.toUpperCase()}: ${v}\n`;
-                }
-            }
-            return res;
-        }
 
-        async function run(type, uid = null) {
-            const target = uid || document.getElementById('targetUID').value;
-            const area = document.getElementById('displayArea');
-            if(!target) {
+    <script>
+        let friendArray = [];
+
+        async function runAction(type, uid = null) {
+            const finalUid = uid || document.getElementById('targetUID').value;
+            if(!finalUid) {
                 Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
                 return;
             }
-            area.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse font-bold">PROCESSING...</p>';
+
             try {
                 const res = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type, target_uid: target })
+                    body: JSON.stringify({ type, target_uid: finalUid })
                 });
                 const data = await res.json();
-                if(type === 'track') {
-                    area.innerHTML = `<div class="bold-vertical">${cleanJSON(data)}</div>`;
-                } else {
-                    Swal.fire({ icon: data.status === 'error' ? 'error' : 'success', title: data.message || 'Done', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
-                    loadList();
-                }
+                
+                Swal.fire({ icon: 'success', title: 'Success', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                loadList();
             } catch (e) {
-                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">ERROR</p>';
+                Swal.fire({ icon: 'error', title: 'API Error', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
             }
         }
 
         async function loadList() {
-            const area = document.getElementById('displayArea');
-            area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Updating...</p>';
+            const box = document.getElementById('listBody');
+            box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
+            
             try {
                 const res = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'get_list' })
                 });
-                const d = await res.json();
-                const list = d.friends || d.data || [];
-                if(list.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>'; return; }
-                area.innerHTML = list.map(f => `
+                const data = await res.json();
+                friendArray = data.friends || data.data || [];
+
+                if(friendArray.length === 0) {
+                    box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>';
+                    return;
+                }
+
+                box.innerHTML = friendArray.map(f => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
-                        <div class="truncate"><p class="text-xs font-bold text-gray-200">${f.name || 'No Name'}</p><p class="text-[9px] text-gray-500 font-mono">${f.uid}</p></div>
-                        <button onclick="run('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
-                    </div>`).join('');
-            } catch (e) { area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Sync Error</p>'; }
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-gray-200">${f.name || 'No Name'}</p>
+                            <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
+                        </div>
+                        <button onclick="runAction('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                box.innerHTML = '<p class="text-center text-red-500 text-[10px]">Sync Error</p>';
+            }
         }
+
+        function removeAll() {
+            if(friendArray.length === 0) return;
+            Swal.fire({ title: 'Remove All?', icon: 'warning', showCancelButton: true }).then((r) => {
+                if (r.isConfirmed) {
+                    friendArray.forEach(f => runAction('remove', f.uid));
+                    setTimeout(loadList, 2000);
+                }
+            });
+        }
+        
+        // Initial Load
+        loadList();
     </script>
 </body>
 </html>
