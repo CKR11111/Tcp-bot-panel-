@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF Bot Panel | CKRPRO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title>FF Bot Panel | [span_0](start_span)CKRPRO</title>[span_0](end_span)
+    [span_1](start_span)<script src="https://cdn.tailwindcss.com"></script>[span_1](end_span)
+    [span_2](start_span)<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>[span_2](end_span)
     <style>
-        body { background: #0d1117; color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
-        .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 380px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
-        .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center; width: 100%; color: #fff; outline: none; }
-        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 600; font-size: 13px; transition: 0.2s; }
-        .ios-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.15); }
-        .display-box { background: rgba(0, 0, 0, 0.4); border-radius: 16px; padding: 15px; margin-top: 15px; max-height: 350px; overflow-y: auto; border: 1px solid #222; }
+        body { background: #0d1117; color: white; font-family: -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; [span_3](start_span)}
+        .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 380px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }[span_3](end_span)
+        .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center; width: 100%; color: #fff; outline: none; [span_4](start_span)}
+        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 600; font-size: 13px; transition: 0.2s; cursor: pointer; }[span_4](end_span)
+        .ios-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.15); [span_5](start_span)}
+        .display-area { background: rgba(0, 0, 0, 0.4); border-radius: 16px; padding: 15px; margin-top: 15px; max-height: 350px; overflow-y: auto; border: 1px solid #222; }
         .bold-white { color: #ffffff; font-weight: 900; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: monospace; }
         .no-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
@@ -21,36 +21,36 @@
 
     <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold tracking-tight">Free Fire Bot Panel</h1>
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Dev: Def Sajan</p>
+            <h1 class="text-xl font-bold tracking-tight">Free Fire Bot Panel</h1>[span_5](end_span)
+            [span_6](start_span)<p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Dev: Def Sajan</p>[span_6](end_span)
         </div>
 
         <div class="space-y-3 mb-6">
-            <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input">
+            [span_7](start_span)<input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">[span_7](end_span)
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="execute('add')" class="ios-btn text-green-400">Add Friend</button>
-                <button onclick="execute('track')" class="ios-btn text-blue-400">Track Player</button>
+                [span_8](start_span)<button onclick="run('add')" class="ios-btn text-green-400">Add Friend</button>[span_8](end_span)
+                <button onclick="run('track')" class="ios-btn text-blue-400">Track Player</button>
             </div>
-            <button onclick="execute('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
+            [span_9](start_span)<button onclick="run('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>[span_9](end_span)
         </div>
 
         <div>
             <div class="flex justify-between items-center mb-2">
-                <p id="boxTitle" class="text-[10px] text-gray-500 font-bold uppercase">Response / List</p>
-                <button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
+                <p class="text-[10px] text-gray-500 font-bold uppercase">System Info / List</p>
+                [span_10](start_span)<button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>[span_10](end_span)
             </div>
-            <div id="displayArea" class="display-box no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">Waiting for command...</p>
+            <div id="displayArea" class="display-area no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready</p>
             </div>
         </div>
     </div>
 
     <script>
-        function clean(obj) {
+        function cleanFormat(obj) {
             let res = "";
             for (let k in obj) {
                 if (typeof obj[k] === 'object' && obj[k] !== null) {
-                    res += k.toUpperCase() + ":\n" + clean(obj[k]);
+                    res += k.toUpperCase() + ":\n" + cleanFormat(obj[k]);
                 } else {
                     let v = String(obj[k]).replace(/[\[\]{}'"]/g, '');
                     res += `➜ ${k.toUpperCase()}: ${v}\n`;
@@ -59,53 +59,66 @@
             return res;
         }
 
-        async function execute(type, uid = null) {
-            const target = uid || document.getElementById('targetUID').value;
+        async function run(type, uid = null) {
+            [span_11](start_span)const finalUid = uid || document.getElementById('targetUID').value;[span_11](end_span)
             const area = document.getElementById('displayArea');
-            if(!target) { 
-                Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
-                return; 
+            
+            if(!finalUid) {
+                [span_12](start_span)Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });[span_12](end_span)
+                return;
             }
 
             area.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse">PROCESSING...</p>';
 
             try {
-                const r = await fetch('/api/action', {
+                [span_13](start_span)const res = await fetch('/api/action', {[span_13](end_span)
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type, target_uid: target })
+                    body: JSON.stringify({ type, target_uid: finalUid })
                 });
-                const data = await r.json();
+                [span_14](start_span)const data = await res.json();[span_14](end_span)
 
-                if (type === 'track') {
-                    area.innerHTML = `<div class="bold-white">${clean(data)}</div>`;
+                if(type === 'track') {
+                    area.innerHTML = `<div class="bold-white">${cleanFormat(data)}</div>`;
                 } else {
-                    Swal.fire({ icon: data.status === 'error' ? 'error' : 'success', title: data.message || 'Done', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                    [span_15](start_span)Swal.fire({ icon: data.status === 'error' ? 'error' : 'success', title: data.message || 'Action Completed', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });[span_15](end_span)
                     loadList();
                 }
             } catch (e) {
-                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">SYSTEM ERROR: CONNECTION FAILED</p>';
+                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">SYSTEM ERROR</p>';
             }
         }
 
         async function loadList() {
             const area = document.getElementById('displayArea');
-            area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
+            [span_16](start_span)area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';[span_16](end_span)
+            
             try {
-                const r = await fetch('/api/action', {
+                const res = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'get_list' })
                 });
-                const d = await r.json();
-                const f = d.friends || d.data || [];
-                if (f.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">List Empty</p>'; return; }
-                area.innerHTML = f.map(x => `
+                const data = await res.json();
+                const friends = data.friends || data.data || [span_17](start_span)[];[span_17](end_span)
+
+                if(friends.length === 0) {
+                    [span_18](start_span)area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>';[span_18](end_span)
+                    return;
+                }
+
+                area.innerHTML = friends.map(f => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
-                        <div class="truncate"><p class="text-xs font-bold">${x.name || 'Unknown'}</p><p class="text-[9px] text-gray-500">${x.uid}</p></div>
-                        <button onclick="execute('remove', '${x.uid}')" class="text-red-400 text-[10px] font-bold">Delete</button>
-                    </div>`).join('');
-            } catch (e) { area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Load Failed</p>'; }
+                        <div class="truncate">
+                            <p class="text-xs font-bold text-gray-200">${f.name || 'Unknown'}</p>
+                            <p class="text-[9px] text-gray-500">${f.uid}</p>
+                        </div>
+                        <button onclick="run('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
+                    </div>
+                [span_19](start_span)`).join('');[span_19](end_span)
+            } catch (e) {
+                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Load Error</p>';
+            }
         }
     </script>
 </body>
