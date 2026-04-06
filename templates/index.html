@@ -18,20 +18,19 @@
     </style>
 </head>
 <body>
-
     <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold text-gray-100">Free Fire Bot Panel</h1>
-            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Developer: Def Sajan</p>
+            <h1 class="text-xl font-bold">Free Fire Bot Panel</h1>
+            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Dev: Def Sajan</p>
         </div>
 
         <div class="space-y-3 mb-6">
-            <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input">
+            <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="execute('add')" class="ios-btn text-green-400">Add Friend</button>
-                <button onclick="execute('track')" class="ios-btn text-blue-400">Track Player</button>
+                <button onclick="run('add')" class="ios-btn text-green-400">Add Friend</button>
+                <button onclick="run('track')" class="ios-btn text-blue-400">Track Player</button>
             </div>
-            <button onclick="execute('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
+            <button onclick="run('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
         </div>
 
         <div>
@@ -40,7 +39,7 @@
                 <button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
             <div id="displayArea" class="display-area no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready for input...</p>
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">Ready...</p>
             </div>
         </div>
     </div>
@@ -60,25 +59,21 @@
             return res;
         }
 
-        async function execute(type, uid = null) {
-            const finalUid = uid || document.getElementById('targetUID').value;
+        async function run(type, uid = null) {
+            const target = uid || document.getElementById('targetUID').value;
             const area = document.getElementById('displayArea');
-            
-            if(!finalUid) {
+            if(!target) {
                 Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
                 return;
             }
-
             area.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse font-bold">PROCESSING...</p>';
-
             try {
                 const res = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type, target_uid: finalUid })
+                    body: JSON.stringify({ type, target_uid: target })
                 });
                 const data = await res.json();
-
                 if(type === 'track') {
                     area.innerHTML = `<div class="bold-vertical">${cleanJSON(data)}</div>`;
                 } else {
@@ -86,40 +81,28 @@
                     loadList();
                 }
             } catch (e) {
-                area.innerHTML = '<p class="text-center text-red-500 text-[10px] font-bold">SERVER CONNECTION ERROR</p>';
+                area.innerHTML = '<p class="text-center text-red-500 text-[10px] font-bold">ERROR</p>';
             }
         }
 
         async function loadList() {
             const area = document.getElementById('displayArea');
-            area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Updating List...</p>';
-            
+            area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Updating...</p>';
             try {
                 const res = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'get_list' })
                 });
-                const data = await res.json();
-                const list = data.friends || data.data || [];
-
-                if(list.length === 0) {
-                    area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">List is Empty</p>';
-                    return;
-                }
-
+                const d = await res.json();
+                const list = d.friends || d.data || [];
+                if(list.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Empty</p>'; return; }
                 area.innerHTML = list.map(f => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
-                        <div class="truncate">
-                            <p class="text-xs font-bold text-gray-200">${f.name || 'No Name'}</p>
-                            <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
-                        </div>
-                        <button onclick="execute('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
-                    </div>
-                `).join('');
-            } catch (e) {
-                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Failed to Sync</p>';
-            }
+                        <div class="truncate"><p class="text-xs font-bold">${f.name || 'No Name'}</p><p class="text-[9px] text-gray-500">${f.uid}</p></div>
+                        <button onclick="run('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
+                    </div>`).join('');
+            } catch (e) { area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Sync Error</p>'; }
         }
     </script>
 </body>
