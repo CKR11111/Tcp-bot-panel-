@@ -7,62 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body {
-            background: #0d1117;
-            color: white;
-            font-family: -apple-system, system-ui, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0;
-            padding: 20px;
-        }
-        .panel-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            border-radius: 24px;
-            width: 100%;
-            max-width: 380px;
-            padding: 24px;
-        }
-        .ios-input {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-            outline: none;
-            border-radius: 12px;
-            padding: 12px;
-            text-align: center;
-            width: 100%;
-            color: #fff;
-            font-size: 16px;
-        }
-        .ios-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 12px;
-            font-weight: 600;
-            font-size: 13px;
-            transition: 0.2s;
-        }
+        body { background: #0d1117; color: white; font-family: -apple-system, system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+        .panel-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 24px; width: 100%; max-width: 380px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
+        .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: center; width: 100%; color: #fff; outline: none; }
+        .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 600; font-size: 13px; transition: 0.2s; }
         .ios-btn:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.15); }
-        
-        .result-container {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 16px;
-            padding: 15px;
-            margin-top: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        .bold-text {
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 13px;
-            font-family: 'Courier New', Courier, monospace;
-            line-height: 1.8;
-            white-space: pre-wrap;
-        }
+        .display-box { background: rgba(0, 0, 0, 0.4); border-radius: 16px; padding: 15px; margin-top: 15px; max-height: 350px; overflow-y: auto; border: 1px solid #222; }
+        .bold-white { color: #ffffff; font-weight: 900; font-size: 12px; line-height: 1.8; white-space: pre-wrap; font-family: monospace; }
         .no-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -70,124 +21,91 @@
 
     <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold tracking-tight text-gray-100">Free Fire Bot Panel</h1>
-            <p class="text-[10px] text-blue-400 font-bold mt-1 tracking-widest uppercase opacity-80">Developer: Def Sajan</p>
+            <h1 class="text-xl font-bold tracking-tight">Free Fire Bot Panel</h1>
+            <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest">Dev: Def Sajan</p>
         </div>
 
-        <div class="space-y-4 mb-6">
-            <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input font-mono">
-            
+        <div class="space-y-3 mb-6">
+            <input id="targetUID" type="number" placeholder="Enter Player UID" class="ios-input">
             <div class="grid grid-cols-2 gap-2">
-                <button onclick="runAction('add')" class="ios-btn text-green-400">Add Friend</button>
-                <button onclick="runAction('track')" class="ios-btn text-blue-400">Track Player</button>
+                <button onclick="execute('add')" class="ios-btn text-green-400">Add Friend</button>
+                <button onclick="execute('track')" class="ios-btn text-blue-400">Track Player</button>
             </div>
-            <button onclick="runAction('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
+            <button onclick="execute('remove')" class="w-full ios-btn text-red-400">Remove Friend</button>
         </div>
 
-        <div class="mt-6">
-            <div class="flex justify-between items-center mb-3">
-                <p id="listTitle" class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Player Info / List</p>
-                <button onclick="loadList()" class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-bold">Refresh List</button>
+        <div>
+            <div class="flex justify-between items-center mb-2">
+                <p id="boxTitle" class="text-[10px] text-gray-500 font-bold uppercase">Response / List</p>
+                <button onclick="loadList()" class="bg-blue-600 text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
-            
-            <div id="displayArea" class="result-container no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">No data to show</p>
+            <div id="displayArea" class="display-box no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">Waiting for command...</p>
             </div>
-
-            <button onclick="removeAll()" class="w-full mt-4 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
         </div>
     </div>
 
     <script>
-        // Clean formatter for vertical, bold, and clean text
-        function formatData(obj, indent = "") {
-            let str = "";
-            for (let key in obj) {
-                if (typeof obj[key] === 'object' && obj[key] !== null) {
-                    str += `${indent}${key.toUpperCase()}:\n${formatData(obj[key], indent + "  ")}`;
+        function clean(obj) {
+            let res = "";
+            for (let k in obj) {
+                if (typeof obj[k] === 'object' && obj[k] !== null) {
+                    res += k.toUpperCase() + ":\n" + clean(obj[k]);
                 } else {
-                    let val = String(obj[key]).replace(/[\[\]{}'"]/g, '');
-                    str += `${indent}➜ ${key.toUpperCase()}: ${val}\n`;
+                    let v = String(obj[k]).replace(/[\[\]{}'"]/g, '');
+                    res += `➜ ${k.toUpperCase()}: ${v}\n`;
                 }
             }
-            return str;
+            return res;
         }
 
-        async function runAction(type, uid = null) {
-            const finalUid = uid || document.getElementById('targetUID').value;
-            const display = document.getElementById('displayArea');
-            const title = document.getElementById('listTitle');
-
-            if(!finalUid) {
-                Swal.fire({ icon: 'error', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
-                return;
+        async function execute(type, uid = null) {
+            const target = uid || document.getElementById('targetUID').value;
+            const area = document.getElementById('displayArea');
+            if(!target) { 
+                Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                return; 
             }
 
-            if(type === 'track') {
-                title.innerText = "TRACKING DATA";
-                display.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse">TRACKING PLAYER...</p>';
-            }
+            area.innerHTML = '<p class="text-center text-[10px] py-4 text-blue-400 animate-pulse">PROCESSING...</p>';
 
             try {
-                const res = await fetch('/api/action', {
+                const r = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ type, target_uid: finalUid })
+                    body: JSON.stringify({ type, target_uid: target })
                 });
-                const data = await res.json();
+                const data = await r.json();
 
-                if(type === 'track') {
-                    display.innerHTML = `<div class="bold-text">${formatData(data)}</div>`;
+                if (type === 'track') {
+                    area.innerHTML = `<div class="bold-white">${clean(data)}</div>`;
                 } else {
-                    Swal.fire({ icon: 'success', title: 'Success', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                    Swal.fire({ icon: data.status === 'error' ? 'error' : 'success', title: data.message || 'Done', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
                     loadList();
                 }
-            } catch (err) {
-                display.innerHTML = '<p class="text-center text-[10px] py-4 text-red-500">ERROR: CONNECTION FAILED</p>';
+            } catch (e) {
+                area.innerHTML = '<p class="text-center text-red-500 text-[10px]">SYSTEM ERROR: CONNECTION FAILED</p>';
             }
         }
 
         async function loadList() {
-            const display = document.getElementById('displayArea');
-            const title = document.getElementById('listTitle');
-            title.innerText = "FRIEND LIST";
-            display.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
-            
+            const area = document.getElementById('displayArea');
+            area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
             try {
-                const res = await fetch('/api/action', {
+                const r = await fetch('/api/action', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ type: 'get_list' })
                 });
-                const data = await res.json();
-                const friends = data.friends || data.data || [];
-
-                if(friends.length === 0) {
-                    display.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase tracking-widest">Empty List</p>';
-                    return;
-                }
-
-                display.innerHTML = friends.map(f => `
+                const d = await r.json();
+                const f = d.friends || d.data || [];
+                if (f.length === 0) { area.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">List Empty</p>'; return; }
+                area.innerHTML = f.map(x => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
-                        <div class="truncate">
-                            <p class="text-xs font-bold text-gray-200 truncate">${f.name || 'Unknown'}</p>
-                            <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
-                        </div>
-                        <button onclick="runAction('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
-                    </div>
-                `).join('');
-            } catch (e) {
-                display.innerHTML = '<p class="text-center text-[10px] py-4 text-red-500">LOAD ERROR</p>';
-            }
-        }
-
-        function removeAll() {
-            Swal.fire({ title: 'Clear Friends?', icon: 'warning', showCancelButton: true }).then((r) => {
-                if(r.isConfirmed) {
-                    Swal.fire({ title: 'Cleaning...', toast: true, position: 'top', showConfirmButton: false });
-                    // Clean logic...
-                }
-            });
+                        <div class="truncate"><p class="text-xs font-bold">${x.name || 'Unknown'}</p><p class="text-[9px] text-gray-500">${x.uid}</p></div>
+                        <button onclick="execute('remove', '${x.uid}')" class="text-red-400 text-[10px] font-bold">Delete</button>
+                    </div>`).join('');
+            } catch (e) { area.innerHTML = '<p class="text-center text-red-500 text-[10px]">Load Failed</p>'; }
         }
     </script>
 </body>
