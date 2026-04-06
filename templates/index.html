@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FF Bot Panel | CKRPRO</title>
+    <title>FF Bot Panel | DEF SAJAN.</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -12,7 +12,7 @@
         .ios-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px; text-align: center; width: 100%; color: #fff; outline: none; font-size: 16px; }
         .ios-btn { background: rgba(255, 255, 255, 0.08); border-radius: 12px; padding: 12px; font-weight: 700; font-size: 14px; transition: 0.2s; cursor: pointer; }
         .ios-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
-        .list-container { background: rgba(0, 0, 0, 0.3); border-radius: 16px; padding: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; border: 1px solid #222; }
+        .list-box { background: rgba(0, 0, 0, 0.3); border-radius: 16px; padding: 10px; margin-top: 15px; max-height: 250px; overflow-y: auto; border: 1px solid #222; }
         .no-scrollbar::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
@@ -20,7 +20,7 @@
 
     <div class="panel-card shadow-2xl">
         <div class="text-center mb-6">
-            <h1 class="text-xl font-bold">Free Fire Bot Panel</h1>
+            <h1 class="text-xl font-bold tracking-tight">FF BOT PANEL</h1>
             <p class="text-[10px] text-blue-400 font-bold uppercase tracking-widest mt-1">Dev: Def Sajan</p>
         </div>
 
@@ -32,18 +32,22 @@
 
         <div>
             <div class="flex justify-between items-center mb-3">
-                <p class="text-[10px] text-gray-500 font-bold uppercase">Friend List</p>
+                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Friend List</p>
                 <button onclick="loadList()" class="bg-blue-600 text-white text-[9px] px-3 py-1 rounded-full font-bold">Refresh</button>
             </div>
-            <div id="listBody" class="list-container no-scrollbar">
-                <p class="text-center text-[10px] text-gray-600 py-4 italic">No data</p>
+            
+            <div id="listBody" class="list-box no-scrollbar">
+                <p class="text-center text-[10px] text-gray-600 py-4 italic">Loading...</p>
             </div>
-            <button onclick="removeAll()" class="w-full mt-4 ios-btn bg-red-500/10 text-red-500 text-[11px] uppercase tracking-tighter">Remove All Friends</button>
+
+            <button onclick="removeAll()" class="w-full mt-4 ios-btn bg-red-500/10 text-red-500 text-[11px] font-bold uppercase tracking-widest">Remove All Friends</button>
         </div>
     </div>
 
     <script>
-        async function runAction(type, uid = null) {
+        let currentFriends = [];
+
+        async function runAction(type, uid = null, silent = false) {
             const finalUid = uid || document.getElementById('targetUID').value;
             if(!finalUid) {
                 Swal.fire({ icon: 'warning', title: 'Enter UID', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
@@ -58,21 +62,21 @@
                 });
                 const data = await res.json();
                 
-                // Show real message from API if available
-                Swal.fire({ 
-                    icon: data.error ? 'error' : 'success', 
-                    title: data.message || (data.error ? 'Failed' : 'Success'), 
-                    toast: true, position: 'top', showConfirmButton: false, timer: 2000 
-                });
-                loadList();
+                if(!silent) {
+                    Swal.fire({ 
+                        icon: (data.error || data.status === 'error') ? 'error' : 'success', 
+                        title: data.message || 'Done', 
+                        toast: true, position: 'top', showConfirmButton: false, timer: 2000 
+                    });
+                    loadList();
+                }
             } catch (e) {
-                Swal.fire({ icon: 'error', title: 'Network Error', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                if(!silent) Swal.fire({ icon: 'error', title: 'Error', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
             }
         }
 
         async function loadList() {
             const box = document.getElementById('listBody');
-            box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Syncing...</p>';
             try {
                 const res = await fetch('/api/action', {
                     method: 'POST',
@@ -80,32 +84,56 @@
                     body: JSON.stringify({ type: 'get_list' })
                 });
                 const data = await res.json();
-                const friends = data.friends || data.data || [];
-                if(friends.length === 0) {
-                    box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500">Empty</p>';
+                currentFriends = data.friends || data.data || [];
+
+                if(currentFriends.length === 0) {
+                    box.innerHTML = '<p class="text-center text-[10px] py-4 text-gray-500 uppercase">Empty</p>';
                     return;
                 }
-                box.innerHTML = friends.map(f => `
+
+                box.innerHTML = currentFriends.map(f => `
                     <div class="flex justify-between items-center bg-white/5 p-3 rounded-xl mb-2">
                         <div class="truncate">
                             <p class="text-xs font-bold text-gray-200">${f.name || 'No Name'}</p>
-                            <p class="text-[9px] text-gray-500">${f.uid}</p>
+                            <p class="text-[9px] text-gray-500 font-mono">${f.uid}</p>
                         </div>
                         <button onclick="runAction('remove', '${f.uid}')" class="text-red-400 text-[10px] font-bold ml-2">Delete</button>
-                    </div>`).join('');
+                    </div>
+                `).join('');
             } catch (e) {
                 box.innerHTML = '<p class="text-center text-red-500 text-[10px]">Sync Error</p>';
             }
         }
 
         function removeAll() {
-            Swal.fire({ title: 'Are you sure?', icon: 'warning', showCancelButton: true }).then((r) => {
-                if (r.isConfirmed) {
-                    Swal.fire({ title: 'Processing...', toast: true, position: 'top', showConfirmButton: false });
-                    // Logic to clear list...
+            if(currentFriends.length === 0) {
+                Swal.fire({ icon: 'info', title: 'List is already empty', toast: true, position: 'top', showConfirmButton: false, timer: 1500 });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Clear All Friends?',
+                text: "Yesle sabai friends lai remove garnechha!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, Remove All'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Cleaning...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    
+                    // Sabai friend lai loop garera remove garne
+                    let promises = currentFriends.map(f => runAction('remove', f.uid, true));
+                    
+                    Promise.all(promises).then(() => {
+                        Swal.fire({ icon: 'success', title: 'All Friends Removed', toast: true, position: 'top', showConfirmButton: false, timer: 2000 });
+                        loadList();
+                    });
                 }
             });
         }
+
         loadList();
     </script>
 </body>
